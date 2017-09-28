@@ -1,38 +1,18 @@
-const cuisines =
-  [{
-    name: 'Italian',
-    count: 70,
-  },
-  {
-    name: 'American',
-    count: 47,
-  },
-  {
-    name: 'Californian',
-    count: 42,
-  },
-  {
-    name: 'French',
-    count: 31,
-  },
-  {
-    name: 'Seafood',
-    count: 29,
-  },
-  {
-    name: 'Japanese',
-    count: 27,
-  },
-  {
-    name: 'Indian',
-    count: 19,
-  }];
+const cuisines = [
+  { name: 'Italian' },
+  { name: 'American' },
+  { name: 'Californian' },
+  { name: 'French' },
+  { name: 'Seafood' },
+  { name: 'Japanese' },
+  { name: 'Indian' },
+];
 
 const paymentOptions = [
-  'AMEX',
-  'Discover',
-  'MasterCard',
-  'Visa',
+  { name: 'AMEX' },
+  { name: 'Discover' },
+  { name: 'MasterCard' },
+  { name: 'Visa' },
 ];
 
 export {

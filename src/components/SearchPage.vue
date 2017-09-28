@@ -10,7 +10,7 @@
     <div class="SearchPage__content">
       <sidebar></sidebar>
       <transition name="slide-fade">
-        <results-list :results="results"></results-list>
+        <results-list :results="results" :time="queryTime"></results-list>
       </transition>
     </div>
   </div>
@@ -33,17 +33,14 @@ export default {
     return {
       results: [],
       query: '',
-      position: PARIS_LAT_LNG
+      position: PARIS_LAT_LNG,
+      startTime: 0,
+      queryTime: 0,
     }
   },
   watch: {
-    query: (newQuery) => {
-      index.setQuery(newQuery).search({
-        query: this.query,
-        attributesToRetrieve: ['name', 'food_type', 'city'],
-        hitsPerPage: 50,
-        aroundLatLng: this.position,
-      });
+    query: function(newQuery) {
+      this.queryAlgolia(newQuery);
     }
   },
   methods: {
@@ -54,17 +51,38 @@ export default {
           this.position = `${latitude}, ${longitude}`;
         });
       }
+    },
+    queryAlgolia: function(query) {
+      this.startTime = Date.now();
+      index.search(query, (err, content) => {
+        this.results = content.hits;
+        this.calculateQueryTime();
+      });
+    },
+    listenToQueries: function() {
+      bus.$on('newCuisineQuery', (cuisine) => {
+        this.queryAlgolia(cuisine);
+      });
+      bus.$on('newRatingQuery', (rating) => {
+        const newQuery = {
+          filters: `stars_count>=${rating} AND stars_count<${rating + 1}`,
+          aroundLatLng: this.position
+        };
+        this.queryAlgolia(newQuery);
+      });
+      bus.$on('newPaymentOptionQuery', (paymentOption) => {
+        this.queryAlgolia(paymentOption);
+      });
+    },
+    calculateQueryTime: function() {
+      this.queryTime = (Date.now() - this.startTime) / 1000;
     }
   },
   mounted() {
-    index.search();
     this.getGeolocation();
-    bus.$on(('newQuery'), (cuisine) => {
-      this.query = cuisine;
-    });
-    index.on('result', result => {
-      this.results = result.hits;
-    });
+    this.startTime = Date.now();
+    this.queryAlgolia({ aroundLatLng: this.position });
+    this.listenToQueries();
   }
 };
 </script>

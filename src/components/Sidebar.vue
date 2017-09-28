@@ -3,18 +3,17 @@
     <div class="FoodTypes">
       <h3>Cuisine/Food Type</h3>
       <ul class="FoodTypes__list">
-        <li class="FoodTypes__item" v-for="(cuisine, i) in cuisines" :key="i" @click="emitNewQuery(cuisine.name)">
+        <li class="FoodTypes__item" v-for="(cuisine, i) in cuisines" :key="i" @click="emitNewCuisineQuery(cuisine)" :class="{ FoodTypes__selected: cuisine.selected }">
           <span>{{ cuisine.name }}</span>
-          <span class="FoodTypes__item__count">{{ cuisine.count }}</span>
         </li>
       </ul>
     </div>
     <div class="Ratings">
       <h3>Rating</h3>
       <ul class="Ratings__ranges">
-        <li v-for="(rating, i) in ratings" :key="i">
+        <li v-for="(rating, i) in ratings" :key="i" @click="emitNewRatingQuery(rating)" :class="{ Ratings__selected: rating.selected }">
           <ul class="Ratings__stars">
-            <li v-for="(star, j) in rating" :key="j">
+            <li v-for="(star, j) in rating.stars" :key="j">
               <img :src="star" width="16" height="16"/>
             </li>
           </ul>
@@ -23,8 +22,8 @@
     </div>
     <div class="PaymentOptions">
       <h3>Payment Options</h3>
-      <ul class="PaymentOptions__choices">
-        <li v-for="(option, j) in paymentOptions" :key="k">{{ option }}</li>
+      <ul class="PaymentOptions__list">
+        <li class="PaymentOptions__item" v-for="(option, i) in paymentOptions" :key="i" @click="emitNewPaymentOptionQuery(option)" :class="{ PaymentOptions__selected: option.selected }">{{ option.name }}</li>
       </ul>
     </div>
   </div>
@@ -42,21 +41,44 @@ export default {
   data() {
     return {
       ratings: [],
-      cuisines,
-      paymentOptions,
+      cuisines: this.getSelectableMap(cuisines),
+      paymentOptions: this.getSelectableMap(paymentOptions)
     };
   },
   methods: {
-    emitNewQuery: (cuisine) => {
-      bus.$emit('newQuery', cuisine);
+    emitNewCuisineQuery: function(cuisine) {
+      this.filterOn(cuisine);
+      bus.$emit('newCuisineQuery', cuisine.name);
+    },
+    emitNewRatingQuery: function(rating) {
+      this.filterOn(rating);
+      bus.$emit('newRatingQuery', rating.starCount);
+    },
+    emitNewPaymentOptionQuery: function(option) {
+      this.filterOn(option);
+      bus.$emit('newPaymentOptionQuery', option.name);
     },
     generateRatings: () => {
-      return Array.from({ length: 6 }, (value, k, arr) => {
-        value = new Array(5);
-        value.fill(starEmpty, 0, 6);
-        value.fill(starPlain, 0, k);
-        return value;
+      const ranges = Array.from({ length: 6 }, (stars, starCount, arr) => {
+        stars = new Array(5);
+        stars.fill(starEmpty, 0, 6);
+        stars.fill(starPlain, 0, starCount);
+        return { stars, starCount, selected: false };
       });
+      ranges.shift();
+      return ranges;
+    },
+    filterOn: function(item) {
+      this.ratings.forEach(item => item.selected = false);
+      this.cuisines.forEach(item => item.selected = false);
+      this.paymentOptions.forEach(item => item.selected = false);
+      item.selected = true;
+    },
+    getSelectableMap: function(list) {
+      return list.map(item => {
+        item.selected = false;
+        return item;
+    });
     }
   },
   mounted() {
@@ -65,10 +87,11 @@ export default {
 };
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
 .Sidebar {
   padding: 1em 2em;
-  width: 18%;
+  width: 20%;
+  min-width: 20%;
 
   h3 {
     font-weight: 500;
@@ -78,25 +101,16 @@ export default {
 .FoodTypes {
   .FoodTypes__list {
     .FoodTypes__item {
-      display: flex;
-      flex-direction: row;
-      justify-content: space-between;
       padding: 0 1em;
       border-radius: 5px;
+      line-height: 1.7em;
       cursor: pointer;
 
-      .FoodTypes__item__count {
-        color: $grey;
-      }
-
       &:hover,
-      &:active {
+      &:active,
+      &.FoodTypes__selected {
         background: $sky-blue;
         color: $white;
-
-        .FoodTypes__item__count {
-          color: $white;
-        }
       }
     }
   }
@@ -105,16 +119,38 @@ export default {
 .Ratings {
   .Ratings__ranges {
     margin-left: 1em;
+
+    .Ratings__selected {
+      filter: contrast(200%);
+    }
   }
 
   .Ratings__stars {
     display: flex;
+    line-height: 1.7em;
+    cursor: pointer;
+
+    &:hover {
+      filter: contrast(200%);
+    }
   }
 }
 
 .PaymentOptions {
-  .PaymentOptions__choices {
-    margin-left: 1em;
+  .PaymentOptions__list {
+    .PaymentOptions__item {
+      padding: 0 1em;
+      border-radius: 5px;
+      line-height: 1.7em;
+      cursor: pointer;
+
+      &:hover,
+      &:active,
+      &.PaymentOptions__selected {
+        background: $sky-blue;
+        color: $white;
+      }
+    }
   }
 }
 </style>

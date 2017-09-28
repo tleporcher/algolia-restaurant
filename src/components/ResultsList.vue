@@ -1,13 +1,12 @@
 <template>
   <div class="ResultsList" v-if="results.length > 0">
     <h3>
-      <span>{{ this.results.length }} results found</span>
-      <span>in 0.002 seconds</span>
+      <span>{{ this.results.length }} results found in {{ this.time }} seconds</span>
     </h3>
-    <transition-group name="slide-fade">
-      <result v-for="(result, i) in results" :result="result" :key="i" v-show="i < resultsCount"></result>
+    <transition-group name="slide-fade" class="ResultsList__list">
+      <result v-for="(result, i) in results" :result="result" :key="i" v-if="i < resultsCount"></result>
     </transition-group>
-    <a class="ResultsList__show" @click="showMore">Show more</a>
+    <a class="ResultsList__show" @click="showMore" v-if="results.length > resultsCount">Show more</a>
   </div>
 </template>
 
@@ -24,17 +23,23 @@ export default {
   components: {
     Result
   },
-  props: ['results'],
+  props: ['results', 'time'],
   methods: {
     showMore: function() {
-      this.resultsCount = this.resultsCount + 3;
+      this.resultsCount = this.resultsCount + 6;
     },
     resetCount: function() {
       this.resultsCount = 3;
     }
   },
   mounted() {
-    bus.$on(('newQuery'), () => {
+    bus.$on('newCuisineQuery', () => {
+      this.resetCount();
+    });
+    bus.$on('newRatingQuery', () => {
+      this.resetCount();
+    });
+    bus.$on('newPaymentOptionQuery', () => {
       this.resetCount();
     });
   }
@@ -48,6 +53,10 @@ export default {
   padding: 1em 0 0 2em;
   border-left: 1px solid $light-grey;
   width: 100%;
+
+  .ResultsList__list {
+    margin-top: 1em;
+  }
 
   .ResultsList__show {
     color: $grey;

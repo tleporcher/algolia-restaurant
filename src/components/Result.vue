@@ -36,7 +36,12 @@ export default {
     fillStars: function() {
       this.stars = Array(5);
       this.stars.fill(starEmpty);
-      this.stars.fill(starPlain, 0, Math.round(this.result.stars_count));
+      this.stars.fill(starPlain, 0, this.result.stars_count);
+    }
+  },
+  watch: {
+    result: function(newResult) {
+      this.fillStars();
     }
   },
   mounted() {
